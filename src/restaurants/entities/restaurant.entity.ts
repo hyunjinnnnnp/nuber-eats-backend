@@ -1,5 +1,5 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
-import { IsBoolean, IsString, Length } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, Length } from 'class-validator';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 //describes how are restaurant looks like on the graphql point
@@ -18,23 +18,15 @@ export class Restaurant {
   @Length(5)
   name: string;
 
-  @Field((type) => Boolean)
-  @Column()
+  @Field((type) => Boolean, { nullable: true })
+  //{ defaultValue: true } DEFAULT VALUE for graphQL <-- (2)
+  @Column({ default: true }) //for db
+  @IsOptional() //for dto validation. --> cause of (2). automatically 'isVegan: true'
   @IsBoolean()
   isVegan?: boolean;
 
-  @Field((type) => String)
+  @Field((type) => String, { defaultValue: '강남' })
   @Column()
   @IsString()
   address: string;
-
-  @Field((type) => String)
-  @Column()
-  @IsString()
-  ownersName: string;
-
-  @Field((type) => String)
-  @Column()
-  @IsString()
-  categoryName: string;
 }
