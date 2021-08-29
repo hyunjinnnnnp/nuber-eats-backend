@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { createRestaurantDto } from './dtos/create-restaurant.dto';
+import { CreateRestaurantDto } from './dtos/create-restaurant.dto';
+import { UpdateRestaurantDto } from './dtos/update-restaurant.dto';
 import { Restaurant } from './entities/restaurant.entity';
 
 @Injectable()
@@ -17,11 +18,15 @@ export class RestaurantService {
   }
   //making method: function inside Class
   createRestaurant(
-    createRestaurantDto: createRestaurantDto,
+    createRestaurantDto: CreateRestaurantDto,
   ): Promise<Restaurant> {
     //   const newRestaurant = new Restaurant();
     //   newRestaurant.name = createRestaurantDto.name ...
     const newRestaurant = this.restaurants.create(createRestaurantDto);
     return this.restaurants.save(newRestaurant);
+  }
+
+  updateRestaurant({ id, data }: UpdateRestaurantDto) {
+    return this.restaurants.update(id, { ...data });
   }
 }

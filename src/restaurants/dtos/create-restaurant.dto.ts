@@ -3,7 +3,7 @@ import { Restaurant } from '../entities/restaurant.entity';
 
 //Restaurant는 ObjectType. must be InputType
 @InputType()
-export class createRestaurantDto extends OmitType(
+export class CreateRestaurantDto extends OmitType(
   Restaurant,
   ['id'],
   //solution 1. InputType
