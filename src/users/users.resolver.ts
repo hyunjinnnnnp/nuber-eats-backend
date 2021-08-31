@@ -42,4 +42,10 @@ export class UsersResolver {
       };
     }
   }
+
+  @Query((returns) => User)
+  me() {
+    //receiving token using HTTP Header
+    //create middleware -- take a request, do something and next()
+  }
 }
