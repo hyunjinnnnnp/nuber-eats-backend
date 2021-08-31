@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import * as jwt from 'jsonwebtoken';
 import { CONFIG_OPTIONS } from './jwt.constants';
 import { JwtModuleOptions } from './jwt.interfaces';
 
@@ -6,12 +7,10 @@ import { JwtModuleOptions } from './jwt.interfaces';
 export class JwtService {
   //module --> service INJECTION
   constructor(
-    @Inject(CONFIG_OPTIONS) private readonly options: JwtModuleOptions,
-  ) {
-    console.log(options);
-  }
+    @Inject(CONFIG_OPTIONS) private readonly options: JwtModuleOptions, // private readonly config: ConfigService, << 이걸로 충분하긴함 ㅋㅋ
+  ) {}
   //config
-  hello() {
-    console.log('hello');
+  sign(userId: number): string {
+    return jwt.sign({ id: userId }, this.options.privateKey);
   }
 }
