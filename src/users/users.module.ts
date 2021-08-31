@@ -9,5 +9,6 @@ import { UsersService } from './users.service';
   //글로벌로 설정되어있는 모듈은 imports할 필요 없음
   imports: [TypeOrmModule.forFeature([User])],
   providers: [UsersResolver, UsersService],
+  exports: [UsersService],
 })
 export class UsersModule {}
