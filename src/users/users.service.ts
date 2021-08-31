@@ -69,8 +69,20 @@ export class UsersService {
   async findById(id: number): Promise<User> {
     return this.users.findOne({ id });
   }
-  async editProfile(userId: number, editProfileInput: EditProfileInput) {
-    //if spread syntax --> password: undefined
-    return this.users.update(userId, { ...editProfileInput });
+  async editProfile(
+    userId: number,
+    { email, password }: EditProfileInput,
+  ): Promise<User> {
+    const user = await this.users.findOne(userId);
+    if (email) {
+      user.email = email;
+    }
+    if (password) {
+      user.password = password;
+    }
+    return this.users.save(user);
+
+    //update doesn't check if the entity exists or not (just sending query to DB)
+    //@BeforeUpdate() : 특정 엔티티를 업데이트 할 때 fired --> user.save(user);
   }
 }
