@@ -5,6 +5,7 @@ import { CreateAccountInput } from './dtos/create-account.dto';
 import { LoginInput } from './dtos/login.dto';
 import { User } from './entities/user.entity';
 import { JwtService } from 'src/jwt/jwt.service';
+import { EditProfileInput } from './dtos/edit-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -67,5 +68,12 @@ export class UsersService {
   }
   async findById(id: number): Promise<User> {
     return this.users.findOne({ id });
+  }
+  async editProfile(userId: number, { email, password }: EditProfileInput) {
+    return this.users.update(userId, { email, password });
+    //update는 db에 엔티티가 존재하는지 여부를 체크하지 않음.
+    //로그인한 유저가 아니라면 editProfile에 접근할 수 없으므로 노 케어
+    //UserId comes from Token. not GraphQL
+    //if UserId comes from graphQL input ? dont use update
   }
 }
