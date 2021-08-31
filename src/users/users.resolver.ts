@@ -1,4 +1,4 @@
-import { Args, Mutation, Query } from '@nestjs/graphql';
+import { Args, Context, Mutation, Query } from '@nestjs/graphql';
 import { Resolver } from '@nestjs/graphql';
 import {
   CreateAccountInput,
@@ -44,7 +44,12 @@ export class UsersResolver {
   }
 
   @Query((returns) => User)
-  me() {
+  me(@Context() context) {
+    if (!context.user) {
+      return;
+    } else {
+      return context.user;
+    }
     //receiving token using HTTP Header
     //create middleware -- take a request, do something and next()
   }
