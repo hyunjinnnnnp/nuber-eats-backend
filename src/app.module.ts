@@ -12,6 +12,7 @@ import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleware } from './jwt/jwt.middleware';
+import { Verification } from './users/entities/verification.entity';
 
 @Module({
   imports: [
@@ -39,7 +40,7 @@ import { JwtMiddleware } from './jwt/jwt.middleware';
       synchronize: process.env.NODE_ENV !== 'prod',
       //true: TypeORM이 데이터베이스에 연결할 때 데이터베이스를 내 모듈의 현재상태로 마이그래이션한다
       logging: true, //데이터베이스 상태 콘솔출력
-      entities: [User],
+      entities: [User, Verification],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
