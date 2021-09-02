@@ -19,7 +19,10 @@ export class MailService {
     form.append('from', `Excited User <mailgun@${this.options.domain}>`);
     form.append('to', `imhjinnnnn@gmail.com`);
     form.append('subject', subject);
-    form.append('text', content);
+    // form.append('text', content);
+    form.append('template', 'nuber-eats-confirm-account');
+    form.append('v:code', 'sdfd'); //sending variables
+    form.append('v:username', 'nico');
     const response = await got(
       `https://api.mailgun.net/v3/${this.options.domain}/messages`,
       {
