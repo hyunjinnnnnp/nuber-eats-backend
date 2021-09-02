@@ -6,12 +6,15 @@ import { LoginInput } from './dtos/login.dto';
 import { User } from './entities/user.entity';
 import { JwtService } from 'src/jwt/jwt.service';
 import { EditProfileInput } from './dtos/edit-profile.dto';
+import { Verification } from './entities/verification.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     //Inject typeORM repository
     @InjectRepository(User) private readonly users: Repository<User>,
+    @InjectRepository(Verification)
+    private readonly verification: Repository<Verification>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -26,7 +29,11 @@ export class UsersService {
       if (exists) {
         return { ok: false, error: 'There is a user with that email already' };
       }
-      await this.users.save(this.users.create({ email, password, role }));
+      const user = await this.users.save(
+        this.users.create({ email, password, role }),
+      );
+      //create verification
+      await this.verification.save(this.verification.create({ user }));
       return { ok: true };
     } catch (e) {
       return { ok: false, error: "Couldn't create account" };
@@ -76,6 +83,8 @@ export class UsersService {
     const user = await this.users.findOne(userId);
     if (email) {
       user.email = email;
+      user.verified = false;
+      await this.verification.save(this.verification.create({ user }));
     }
     if (password) {
       user.password = password;
@@ -84,5 +93,18 @@ export class UsersService {
 
     //update doesn't check if the entity exists or not (just sending query to DB)
     //@BeforeUpdate() : 특정 엔티티를 업데이트 할 때 fired --> user.save(user);
+  }
+
+  async verifyEmail(code: string): Promise<boolean> {
+    const verification = await this.verification.findOne(
+      { code },
+      // { loadRelationIds: true }
+      { relations: ['user'] },
+    );
+    if (verification) {
+      verification.user.verified = true;
+      this.users.save(verification.user);
+    }
+    return false;
   }
 }
