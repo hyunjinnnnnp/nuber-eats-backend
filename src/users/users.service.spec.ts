@@ -32,6 +32,8 @@ describe('UserService', () => {
   let service: UsersService;
   //진짜 repository의 함수를 모두 가져올 건데 그걸 mockFunc 에 넣을거임.
   let usersRepository: mockRepository<User>;
+  let verificationsRepository: mockRepository<Verification>;
+  let mailService: MailService;
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       providers: [
@@ -55,7 +57,9 @@ describe('UserService', () => {
       ],
     }).compile();
     service = module.get<UsersService>(UsersService);
+    mailService = module.get<MailService>(MailService);
     usersRepository = module.get(getRepositoryToken(User));
+    verificationsRepository = module.get(getRepositoryToken(Verification));
   });
 
   it('should be defined', () => {
@@ -84,12 +88,32 @@ describe('UserService', () => {
     it('should create a new user', async () => {
       usersRepository.findOne.mockReturnValue(undefined);
       usersRepository.create.mockReturnValue(createAccountArgs);
-      await service.createAccount(createAccountArgs);
+      usersRepository.save.mockResolvedValue(createAccountArgs);
+      verificationsRepository.create.mockReturnValue({
+        user: createAccountArgs,
+      });
+      verificationsRepository.save.mockResolvedValue({
+        code: 'code',
+      });
+      const result = await service.createAccount(createAccountArgs);
       expect(usersRepository.create).toHaveBeenCalledTimes(1);
-      //ensures that a mock function is called an exact number of times.
       expect(usersRepository.create).toHaveBeenCalledWith(createAccountArgs);
       expect(usersRepository.save).toHaveBeenCalledTimes(1);
       expect(usersRepository.save).toHaveBeenCalledWith(createAccountArgs);
+      expect(verificationsRepository.create).toHaveBeenCalledTimes(1);
+      expect(verificationsRepository.create).toHaveBeenCalledWith({
+        user: createAccountArgs,
+      });
+      expect(verificationsRepository.save).toHaveBeenCalledTimes(1);
+      expect(verificationsRepository.save).toHaveBeenCalledWith({
+        user: createAccountArgs,
+      });
+      expect(mailService.sendVerificationEmail).toHaveBeenCalledTimes(1);
+      expect(mailService.sendVerificationEmail).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+      );
+      expect(result).toEqual({ ok: true });
     });
   });
   it.todo('login');
