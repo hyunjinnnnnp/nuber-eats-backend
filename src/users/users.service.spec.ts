@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { JwtService } from 'src/jwt/jwt.service';
 import { MailService } from 'src/mail/mail.service';
+import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { Verification } from './entities/verification.entity';
 import { UsersService } from './users.service';
@@ -22,9 +23,15 @@ const mockMailService = {
   sendVerificationEmail: jest.fn(),
 };
 
+type mockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
+//making a partial, make all properties optional, and Construct a type with a set of properties K of type T
+//(all the properties from the User Repository: findOne, save ... )
+//and the types are jest.Mock
+
 describe('UserService', () => {
   let service: UsersService;
-
+  //진짜 repository의 함수를 모두 가져올 건데 그걸 mockFunc 에 넣을거임.
+  let usersRepository: mockRepository<User>;
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       providers: [
@@ -48,13 +55,16 @@ describe('UserService', () => {
       ],
     }).compile();
     service = module.get<UsersService>(UsersService);
+    usersRepository = module.get(getRepositoryToken(User));
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  it.todo('createAccount');
+  describe('createAccount', () => {
+    it('should fail if user exists', () => {});
+  });
   it.todo('login');
   it.todo('findById');
   it.todo('editProfile');
