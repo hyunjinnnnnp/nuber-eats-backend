@@ -59,7 +59,9 @@ describe('MailService', () => {
 
   describe('sendEmail', () => {
     it('should email', async () => {
-      const ok = await service.sendEmail('', '', []);
+      const ok = await service.sendEmail('', '', [
+        { key: 'attr', value: 'attrValue' },
+      ]);
       const formSpy = jest.spyOn(FormData.prototype, 'append'); //const form = new FormData(); then form.append
       expect(formSpy).toHaveBeenCalled();
       expect(got.post).toHaveBeenCalledTimes(1);
@@ -69,6 +71,7 @@ describe('MailService', () => {
       );
       expect(ok).toEqual(true);
     });
+
     it('fails on error', async () => {
       jest.spyOn(got, 'post').mockImplementation(() => {
         throw new Error();
