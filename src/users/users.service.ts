@@ -100,9 +100,14 @@ export class UsersService {
   ): Promise<EditProfileOutput> {
     try {
       const user = await this.users.findOne(userId);
+      const isEmailExist = await this.users.findOne({ email });
+      if (isEmailExist) {
+        return { ok: false, error: 'Email is already exists.' };
+      }
       if (email) {
         user.email = email;
         user.verified = false;
+        await this.verifications.delete({ user: { id: user.id } });
         const verification = await this.verifications.save(
           this.verifications.create({ user }),
         );
