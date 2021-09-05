@@ -159,7 +159,6 @@ describe('UserModule (e2e)', () => {
       const [user] = await usersRepository.find();
       userId = user.id;
     });
-
     it("should find a user's profile", () => {
       return request(app.getHttpServer())
         .post(GRAPHQL_ENDPOINT)
@@ -180,21 +179,16 @@ describe('UserModule (e2e)', () => {
         .expect((res) => {
           const {
             body: {
-              data: {
-                userProfile: {
-                  ok,
-                  error,
-                  user: { id },
-                },
-              },
+              data: { userProfile },
             },
           } = res;
-          expect(ok).toBe(true);
-          expect(error).toBe(null);
-          expect(id).toBe(userId);
+          expect(userProfile).toEqual({
+            ok: true,
+            error: null,
+            user: { id: userId },
+          });
         });
     });
-
     it('should not find a profile', () => {
       return request(app.getHttpServer())
         .post(GRAPHQL_ENDPOINT)
@@ -228,7 +222,55 @@ describe('UserModule (e2e)', () => {
     });
   });
 
-  it.todo('me');
-  it.todo('verifyEmail');
+  describe('me', () => {
+    it('should find my profile', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .set('X-JWT', jwtToken)
+        .send({
+          query: `
+            {     
+              me{
+                email
+              }
+            }`,
+        })
+        .expect(200)
+        .expect((res) => {
+          const {
+            body: {
+              data: {
+                me: { email },
+              },
+            },
+          } = res;
+          expect(email).toEqual(testUser.email);
+        });
+    });
+    it('should not allow logged out user', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .send({
+          query: `
+            {     
+              me{
+                email
+              }
+            }`,
+        })
+        .expect(200)
+        .expect((res) => {
+          const {
+            body: {
+              errors: [{ message }],
+            },
+          } = res;
+          expect(message).toBe('Forbidden resource');
+        });
+    });
+  });
+
   it.todo('editProfile');
+
+  it.todo('verifyEmail');
 });
