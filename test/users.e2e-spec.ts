@@ -27,6 +27,11 @@ describe('UserModule (e2e)', () => {
   let verificationsRepository: Repository<Verification>;
   let jwtToken: string;
 
+  const baseTest = () => request(app.getHttpServer()).post(GRAPHQL_ENDPOINT);
+  const publicTest = (query: string) => baseTest().send({ query });
+  const privateTest = (query: string) =>
+    baseTest().set('X-JWT', jwtToken).send({ query });
+
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [AppModule], //load whole module
@@ -47,10 +52,7 @@ describe('UserModule (e2e)', () => {
 
   describe('createAccount', () => {
     it('should create account', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
-        .send({
-          query: `
+      return publicTest(`
           mutation{
             createAccount(input:{
               email: "${testUser.email}",
@@ -60,8 +62,7 @@ describe('UserModule (e2e)', () => {
               ok
               error
             }
-          }`,
-        })
+          }`)
         .expect(200)
         .expect((res) => {
           expect(res.body.data.createAccount.ok).toBe(true);
@@ -71,10 +72,7 @@ describe('UserModule (e2e)', () => {
 
     it('should fail if account already exists', () => {
       //afterAll --> database.drop 이기때문에 순차적으로 진행시킨다.
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
-        .send({
-          query: `
+      return publicTest(`
           mutation{
             createAccount(input:{
               email: "${testUser.email}",
@@ -84,8 +82,7 @@ describe('UserModule (e2e)', () => {
               ok
               error
             }
-          }`,
-        })
+          }`)
         .expect(200)
         .expect((res) => {
           expect(res.body.data.createAccount.ok).toBe(false);
@@ -98,10 +95,7 @@ describe('UserModule (e2e)', () => {
 
   describe('login', () => {
     it('should login with correct credentials', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
-        .send({
-          query: `
+      return publicTest(`
           mutation{
             login(input:{
               email:"${testUser.email}",
@@ -111,8 +105,7 @@ describe('UserModule (e2e)', () => {
               token
               error
             }
-          }`,
-        })
+          }`)
         .expect(200)
         .expect((res) => {
           const {
@@ -128,10 +121,7 @@ describe('UserModule (e2e)', () => {
     });
 
     it('should not be able to login with wrong credentials', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
-        .send({
-          query: `
+      return publicTest(`
           mutation{
             login(input:{
               email:"${testUser.email}",
@@ -141,8 +131,7 @@ describe('UserModule (e2e)', () => {
               token
               error
             }
-          }`,
-        })
+          }`)
         .expect(200)
         .expect((res) => {
           const {
@@ -165,11 +154,7 @@ describe('UserModule (e2e)', () => {
       userId = user.id;
     });
     it("should find a user's profile", () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
-        .set('X-JWT', jwtToken) //super set!!
-        .send({
-          query: `
+      return privateTest(`
         {     
           userProfile(userId: ${userId}){
             ok
@@ -178,8 +163,7 @@ describe('UserModule (e2e)', () => {
               id
             }
           }
-        }`,
-        })
+        }`)
         .expect(200)
         .expect((res) => {
           const {
@@ -195,11 +179,7 @@ describe('UserModule (e2e)', () => {
         });
     });
     it('should not find a profile', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
-        .set('X-JWT', jwtToken) //super set!!
-        .send({
-          query: `
+      return privateTest(`
         {     
           userProfile(userId:666){
             ok
@@ -209,8 +189,7 @@ describe('UserModule (e2e)', () => {
             }
           }
         }
-        `,
-        })
+        `)
         .expect(200)
         .expect((res) => {
           const {
@@ -229,17 +208,12 @@ describe('UserModule (e2e)', () => {
 
   describe('me', () => {
     it('should find my profile', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
-        .set('X-JWT', jwtToken)
-        .send({
-          query: `
+      return privateTest(`
             {     
               me{
                 email
               }
-            }`,
-        })
+            }`)
         .expect(200)
         .expect((res) => {
           const {
@@ -253,16 +227,12 @@ describe('UserModule (e2e)', () => {
         });
     });
     it('should not allow logged out user', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
-        .send({
-          query: `
+      return publicTest(`
             {     
               me{
                 email
               }
-            }`,
-        })
+            }`)
         .expect(200)
         .expect((res) => {
           const {
@@ -279,11 +249,7 @@ describe('UserModule (e2e)', () => {
     const NEW_EMAIL = 'new@email.com';
     const NEW_PASSWORD = 'newPassword';
     it('should change email', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
-        .set('X-JWT', jwtToken)
-        .send({
-          query: `
+      return privateTest(`
             mutation{     
               editProfile(input:{
                 email: "${NEW_EMAIL}"
@@ -291,8 +257,7 @@ describe('UserModule (e2e)', () => {
                 ok
                 error
               }
-            }`,
-        })
+            }`)
         .expect(200)
         .expect((res) => {
           const {
@@ -308,18 +273,13 @@ describe('UserModule (e2e)', () => {
       // you could also .then(() => {});
     });
     it('should have new email', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
-        .set('X-JWT', jwtToken)
-        .send({
-          query: `
+      return privateTest(`
           {
             me {
               email
             }
           }
-        `,
-        })
+        `)
         .expect(200)
         .expect((res) => {
           const {
@@ -333,11 +293,7 @@ describe('UserModule (e2e)', () => {
         });
     });
     it('should change password', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
-        .set('X-JWT', jwtToken)
-        .send({
-          query: `
+      return privateTest(`
             mutation{     
               editProfile(input:{
                 password: "${NEW_PASSWORD}"
@@ -345,8 +301,7 @@ describe('UserModule (e2e)', () => {
                 ok
                 error
               }
-            }`,
-        })
+            }`)
         .expect(200)
         .expect((res) => {
           const {
@@ -369,10 +324,7 @@ describe('UserModule (e2e)', () => {
       verificationCode = verification.code;
     });
     it('should verify email', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
-        .send({
-          query: `
+      return publicTest(`
             mutation{     
               verifyEmail(input:{
                code: "${verificationCode}"
@@ -381,8 +333,7 @@ describe('UserModule (e2e)', () => {
                 error
               }
             }
-        `,
-        })
+        `)
         .expect(200)
         .expect((res) => {
           const {
@@ -397,10 +348,7 @@ describe('UserModule (e2e)', () => {
         });
     });
     it('should fail on verification code not found', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
-        .send({
-          query: `
+      return publicTest(`
             mutation{     
               verifyEmail(input:{
                code: "xxxxxx"
@@ -409,8 +357,7 @@ describe('UserModule (e2e)', () => {
                 error
               }
             }
-        `,
-        })
+        `)
         .expect(200)
         .expect((res) => {
           const {
