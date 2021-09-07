@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
-import { ILike, Raw, Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { AllCategoriesOutput } from './dtos/all-categories.dto';
 import { CategoryInput, CategoryOutput } from './dtos/category.dto';
 import {
@@ -25,6 +25,7 @@ import {
 import { Category } from './entities/category.entity';
 import { Restaurant } from './entities/restaurant.entity';
 import { CategoryRepository } from './repositories/category.repository';
+import { PaginationRepository } from './repositories/pagination.repository';
 
 @Injectable()
 export class RestaurantService {
@@ -32,6 +33,7 @@ export class RestaurantService {
     @InjectRepository(Restaurant)
     private readonly restaurants: Repository<Restaurant>,
     private readonly categories: CategoryRepository,
+    private readonly paginate: PaginationRepository,
   ) {}
 
   async createRestaurant(
@@ -153,14 +155,14 @@ export class RestaurantService {
     page,
   }: SearchRestaurantInput): Promise<SearchRestaurantOutput> {
     try {
-      const [restaurants, totalResults] = await this.restaurants.findAndCount({
-        where: {
-          name: ILike(`%${query}%`),
-          // name: Raw((name) => `${name} ILIKE '%${query}%'`), //sql directly
-        },
-        skip: (page - 1) * 20,
-        take: 20,
-      });
+      const sqlCaluse = {
+        name: ILike(`%${query}%`),
+        // name: Raw((name) => `${name} ILIKE '%${query}%'`), //sql directly
+      };
+      const [restaurants, totalResults] = await this.paginate.search(
+        page,
+        sqlCaluse,
+      );
       return {
         ok: true,
         totalPages: Math.ceil(totalResults / 20),
@@ -199,19 +201,13 @@ export class RestaurantService {
     page,
   }: CategoryInput): Promise<CategoryOutput> {
     try {
-      const category = await this.categories.findOne(
-        { slug },
-        // { relations: ['restaurants'] },
-      );
+      const category = await this.categories.findOne({ slug });
       if (!category) {
         return { ok: false, error: 'Category not found' };
       }
-      const restaurants = await this.restaurants.find({
-        where: { category },
-        take: 20,
-        skip: (page - 1) * 20,
+      const [restaurants, totalResults] = await this.paginate.search(page, {
+        category,
       });
-      const totalResults = await this.countRestaurants(category);
       return {
         ok: true,
         restaurants,
@@ -229,11 +225,7 @@ export class RestaurantService {
 
   async allrestaurants({ page }: RestaurantsInput): Promise<RestaurantsOutput> {
     try {
-      const [restaurants, totalResults] = await this.restaurants.findAndCount({
-        //return an array and number
-        take: 20,
-        skip: (page - 1) * 20,
-      });
+      const [restaurants, totalResults] = await this.paginate.search(page);
       return {
         ok: true,
         results: restaurants,
