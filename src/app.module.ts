@@ -19,6 +19,8 @@ import { Category } from './restaurants/entities/category.entity';
 import { RestaurantsModule } from './restaurants/restaurants.module';
 import { AuthModule } from './auth/auth.module';
 import { Dish } from './restaurants/entities/dish.entity';
+import { OrdersModule } from './orders/orders.module';
+import { Order } from './orders/entities/order.entity';
 
 @Module({
   imports: [
@@ -50,7 +52,7 @@ import { Dish } from './restaurants/entities/dish.entity';
       //true: TypeORM이 데이터베이스에 연결할 때 데이터베이스를 내 모듈의 현재상태로 마이그래이션한다
       logging:
         process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test', //데이터베이스 상태 콘솔출력
-      entities: [User, Verification, Restaurant, Category, Dish],
+      entities: [User, Verification, Restaurant, Category, Dish, Order],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
@@ -62,6 +64,7 @@ import { Dish } from './restaurants/entities/dish.entity';
     AuthModule,
     UsersModule,
     RestaurantsModule,
+    OrdersModule,
     MailModule.forRoot({
       apiKey: process.env.MAILGUN_API_KEY,
       domain: process.env.MAILGUN_DOMAIN_NAME,
