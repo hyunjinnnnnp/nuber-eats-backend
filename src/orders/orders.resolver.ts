@@ -61,7 +61,9 @@ export class OrderResolver {
   }
 
   @Subscription((returns) => String)
-  readyPotato() {
+  @Role(['Any'])
+  readyPotato(@AuthUser() user: User) {
+    console.log(user);
     //not gonna return a string. --> async iterator
     return pubsub.asyncIterator('hotPotatoes');
   }
