@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import {
   NEW_COOKED_ORDER,
+  NEW_ORDER_UPDATES,
   NEW_PENDING_ORDER,
   PUB_SUB,
 } from 'src/common/common.constants';
@@ -193,9 +194,7 @@ export class OrderService {
     { id: orderId, status }: EditOrderInput,
   ): Promise<EditOrderOutput> {
     try {
-      const order = await this.orders.findOne(orderId, {
-        relations: ['restaurant'],
-      });
+      const order = await this.orders.findOne(orderId);
       if (!order) {
         return { ok: false, error: 'Could not found order.' };
       }
@@ -220,15 +219,21 @@ export class OrderService {
         return { ok: false, error: 'Access denied.' };
       }
       await this.orders.save({ id: orderId, status });
-      //console.log(newOrder); >> saved >> doesn't return the WHOLE entity
+      // >> saved >> doesn't return the WHOLE entity
+      const newOrder = { ...order, status }; //older order(from DB, not edited yet) and new status
       if (user.role === UserRole.Owner) {
         if (status === OrderStatus.Cooked) {
+          //for driver
           await this.pubSub.publish(NEW_COOKED_ORDER, {
-            cookedOrders: { ...order, status }, //older order(from DB, not edited yet) and new status
+            cookedOrders: newOrder,
           });
-          //CUSTOMER: NULL << load relations ['Restaurant']
+          // >> Eager relations : from entity
         }
       }
+      //for everybody
+      await this.pubSub.publish(NEW_ORDER_UPDATES, {
+        orderUpdates: newOrder,
+      });
       return { ok: true };
     } catch {
       return { ok: false, error: 'Could not edit order.' };
