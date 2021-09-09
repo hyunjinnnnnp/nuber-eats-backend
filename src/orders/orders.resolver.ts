@@ -70,6 +70,9 @@ export class OrderResolver {
       //context: added by the GUARD
       return readyPotato === potatoId; //if it's true, get UPDATE
     },
+    //transform how the update response looks like
+    resolve: ({ readyPotato }) =>
+      `Your potato with the id ${readyPotato} is ready`,
   })
   @Role(['Any'])
   readyPotato(@Args('potatoId') potatoId: number) {
