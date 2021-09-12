@@ -8,6 +8,9 @@ export class PaginationRepository extends Repository<Restaurant> {
       where,
       take: 20,
       skip: (page - 1) * 20,
+      order: {
+        isPromoted: 'DESC',
+      },
     });
     return result;
   }
