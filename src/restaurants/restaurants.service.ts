@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PAGINATION_NUMBER } from 'src/common/common.constants';
 import { User } from 'src/users/entities/user.entity';
 import { ILike, Repository } from 'typeorm';
 import { AllCategoriesOutput } from './dtos/all-categories.dto';
@@ -19,6 +20,7 @@ import {
   EditRestaurantInput,
   EditRestaurantOutput,
 } from './dtos/edit-restaurant.dto';
+import { MyRestaurantsOutput } from './dtos/my-restaurants.dto';
 import { RestaurantInput, RestaurantOutput } from './dtos/restaurant.dto';
 import { RestaurantsInput, RestaurantsOutput } from './dtos/restaurants.dto';
 import {
@@ -62,6 +64,18 @@ export class RestaurantService {
         ok: false,
         error: 'Could not create restaurant',
       };
+    }
+  }
+
+  async myRestaurants(owner: User): Promise<MyRestaurantsOutput> {
+    try {
+      const restaurants = await this.restaurants.find({ owner });
+      return {
+        restaurants,
+        ok: true,
+      };
+    } catch {
+      return { ok: false, error: 'Could not find restaurants' };
     }
   }
 
@@ -173,7 +187,7 @@ export class RestaurantService {
       );
       return {
         ok: true,
-        totalPages: Math.ceil(totalResults / 20),
+        totalPages: Math.ceil(totalResults / PAGINATION_NUMBER),
         totalResults,
         restaurants,
       };
@@ -220,7 +234,7 @@ export class RestaurantService {
         ok: true,
         restaurants,
         category,
-        totalPages: Math.ceil(totalResults / 20),
+        totalPages: Math.ceil(totalResults / PAGINATION_NUMBER),
         totalResults,
       };
     } catch {
@@ -237,7 +251,7 @@ export class RestaurantService {
       return {
         ok: true,
         results: restaurants,
-        totalPages: Math.ceil(totalResults / 20),
+        totalPages: Math.ceil(totalResults / PAGINATION_NUMBER),
         totalResults,
       };
     } catch {
