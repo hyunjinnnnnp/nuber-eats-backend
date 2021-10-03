@@ -60,8 +60,7 @@ import { UploadsModule } from './uploads/uploads.module';
       //true: TypeORM이 데이터베이스에 연결할 때 데이터베이스를 내 모듈의 현재상태로 마이그래이션한다
       // On production is always better to apply migrations manually, synchronize will do it automatically but it might cause data loss.
       logging:
-        process.env.NODE_ENV !== 'production' &&
-        process.env.NODE_ENV !== 'test', //데이터베이스 상태 콘솔출력
+        process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test', //데이터베이스 상태 콘솔출력
       entities: [
         User,
         Verification,
