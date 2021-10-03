@@ -56,7 +56,7 @@ import { UploadsModule } from './uploads/uploads.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD, //localhost경우 필요없음
       database: process.env.DB_NAME,
-      synchronize: process.env.NODE_ENV !== 'prod',
+      synchronize: process.env.NODE_ENV === 'prod',
       //true: TypeORM이 데이터베이스에 연결할 때 데이터베이스를 내 모듈의 현재상태로 마이그래이션한다
       logging:
         process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test', //데이터베이스 상태 콘솔출력
