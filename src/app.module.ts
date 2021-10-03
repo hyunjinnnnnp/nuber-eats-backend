@@ -33,9 +33,9 @@ import { UploadsModule } from './uploads/uploads.module';
     ConfigModule.forRoot({
       isGlobal: true, //<<<<<<<
       envFilePath: process.env.NODE_ENV === 'dev' ? '.env.dev' : '.env.test',
-      ignoreEnvFile: process.env.NODE_ENV === 'prod',
+      ignoreEnvFile: process.env.NODE_ENV === 'production',
       validationSchema: Joi.object({
-        NODE_ENV: Joi.string().valid('dev', 'prod', 'test').required(),
+        NODE_ENV: Joi.string().valid('dev', 'production', 'test').required(),
         DB_PORT: Joi.string().required(),
         DB_HOST: Joi.string().required(),
         DB_PASSWORD: Joi.string().required(),
@@ -56,10 +56,12 @@ import { UploadsModule } from './uploads/uploads.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD, //localhost경우 필요없음
       database: process.env.DB_NAME,
-      synchronize: process.env.NODE_ENV === 'prod',
+      synchronize: process.env.NODE_ENV === 'production',
       //true: TypeORM이 데이터베이스에 연결할 때 데이터베이스를 내 모듈의 현재상태로 마이그래이션한다
+      // On production is always better to apply migrations manually, synchronize will do it automatically but it might cause data loss.
       logging:
-        process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test', //데이터베이스 상태 콘솔출력
+        process.env.NODE_ENV !== 'production' &&
+        process.env.NODE_ENV !== 'test', //데이터베이스 상태 콘솔출력
       entities: [
         User,
         Verification,
@@ -72,6 +74,7 @@ import { UploadsModule } from './uploads/uploads.module';
       ],
     }),
     GraphQLModule.forRoot({
+      playground: process.env.NODE_ENV !== 'production',
       installSubscriptionHandlers: true,
       autoSchemaFile: true,
       context: ({ req, connection }) => {
