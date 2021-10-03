@@ -36,11 +36,11 @@ import { UploadsModule } from './uploads/uploads.module';
       ignoreEnvFile: process.env.NODE_ENV === 'production',
       validationSchema: Joi.object({
         NODE_ENV: Joi.string().valid('dev', 'production', 'test').required(),
-        DB_PORT: Joi.string().required(),
-        DB_HOST: Joi.string().required(),
-        DB_PASSWORD: Joi.string().required(),
-        DB_USERNAME: Joi.string().required(),
-        DB_NAME: Joi.string().required(),
+        DB_PORT: Joi.string(), //FOR LOCAL >> heroku doesn't need
+        DB_HOST: Joi.string(),
+        DB_PASSWORD: Joi.string(),
+        DB_USERNAME: Joi.string(),
+        DB_NAME: Joi.string(),
         PRIVATE_KEY: Joi.string().required(),
         MAILGUN_API_KEY: Joi.string().required(),
         MAILGUN_DOMAIN_NAME: Joi.string().required(),
@@ -51,11 +51,17 @@ import { UploadsModule } from './uploads/uploads.module';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DB_HOST,
-      port: +process.env.DB_PORT,
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD, //localhost경우 필요없음
-      database: process.env.DB_NAME,
+      //heroku credentials are not permanent
+      //process.env.DATABASE_URL << Heroku gives us
+      ...(process.env.DATABASE_URL
+        ? { url: process.env.DATABASE_URL }
+        : {
+            host: process.env.DB_HOST,
+            port: +process.env.DB_PORT,
+            username: process.env.DB_USERNAME,
+            password: process.env.DB_PASSWORD, //localhost경우 필요없음
+            database: process.env.DB_NAME,
+          }),
       synchronize: true,
       //true: TypeORM이 데이터베이스에 연결할 때 데이터베이스를 내 모듈의 현재상태로 마이그래이션한다
       // On production is always better to apply migrations manually, synchronize will do it automatically but it might cause data loss.
