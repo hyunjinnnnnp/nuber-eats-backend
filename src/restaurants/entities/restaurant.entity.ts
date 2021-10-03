@@ -14,7 +14,6 @@ export class Restaurant extends CoreEntity {
   @Field((type) => String) //for graphQL
   @Column() //for typeORM
   @IsString() //for dto validation
-  @Length(5)
   name: string;
 
   @Field((type) => String)

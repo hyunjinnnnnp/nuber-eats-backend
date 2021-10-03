@@ -19,6 +19,7 @@ export class UploadsController {
         secretAccessKey: process.env.AWS_SECRET_KEY,
       },
     });
+    // AWS.config.update({region:'ap-northeast-2'})
     try {
       const objectName = `${Date.now() + file.originalname}`;
       //create Bucket createBucket({Bucket: "must to be unique name"}) then, do
@@ -26,11 +27,10 @@ export class UploadsController {
         .putObject({
           Body: file.buffer,
           Bucket: BUCKET_NAME,
-          Key: `${Date.now() + file.originalname}`, //uuid ?
+          Key: objectName, //uuid ?
           ACL: 'public-read',
         })
         .promise();
-
       const url = `https://${BUCKET_NAME}.s3.amazonaws.com/${objectName}`;
       return { url };
     } catch (e) {

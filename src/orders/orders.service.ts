@@ -64,7 +64,7 @@ export class OrderService {
             if (dishOption.extra) {
               dishFinalPrice = dishFinalPrice + dishOption.extra;
             } else {
-              const dishOptionChoice = dishOption.choices.find(
+              const dishOptionChoice = dishOption.choices?.find(
                 (optionChoice) => optionChoice.name === itemOption.choice,
               );
               if (dishOptionChoice) {
@@ -96,8 +96,9 @@ export class OrderService {
         pendingOrders: { order, ownerId: restaurant.ownerId },
       });
       //trigger, payload(resolver)
-      return { ok: true };
-    } catch {
+      return { ok: true, orderId: order.id };
+    } catch (e) {
+      console.log(e);
       return { ok: false, error: 'Could not create order.' };
     }
   }
